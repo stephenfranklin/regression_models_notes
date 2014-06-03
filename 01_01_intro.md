@@ -1,0 +1,258 @@
+---
+title       : Introduction to regression
+subtitle    : Regression
+author      : Brian Caffo, Jeff Leek and Roger Peng
+job         : Johns Hopkins Bloomberg School of Public Health
+logo        : bloomberg_shield.png
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+url:
+  lib: ../../libraries
+  assets: ../../assets
+widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+---
+## A famous motivating example
+
+
+
+
+<img class=center src=fig_01_01/galton.jpg height=150>
+
+### (Perhaps surprisingly, this example is still relevant)
+
+<img class=center src=fig_01_01/height.png height=150>
+
+[http://www.nature.com/ejhg/journal/v17/n8/full/ejhg20095a.html](http://www.nature.com/ejhg/journal/v17/n8/full/ejhg20095a.html)
+
+[Predicting height: the Victorian approach beats modern genomics](http://www.wired.com/wiredscience/2009/03/predicting-height-the-victorian-approach-beats-modern-genomics/)
+
+---
+## Questions for this class
+* Consider trying to answer the following kinds of questions:
+  * To use the parents' heights to predict childrens' heights.
+  * To try to find a parsimonious, easily described mean 
+    relationship between parent and children's heights.
+  * To investigate the variation in childrens' heights that appears 
+  unrelated to parents' heights (residual variation).
+  * To quantify what impact genotype information has beyond parental height in explaining child height.
+  * To figure out how/whether and what assumptions are needed to
+    generalize findings beyond the data in question.  
+  * Why do children of very tall parents tend to be 
+    tall, but a little shorter than their parents and why children of very short parents tend to be short, but a little taller than their parents? (This is a famous question called 'Regression to the mean'.)
+
+---
+## Galton's Data
+
+* Let's look at the data first, used by Francis Galton in 1885. 
+* Galton was a statistician who invented the term and concepts
+  of regression and correlation, founded the journal Biometrika,
+  and was the cousin of Charles Darwin.
+* You may need to run `install.packages("UsingR")` if the `UsingR` library is not installed.
+* Let's look at the marginal (parents disregarding children and children disregarding parents) distributions first. 
+  * Parent distribution is all heterosexual couples.
+  * Correction for gender via multiplying female heights by 1.08.
+  * Overplotting is an issue from discretization.
+
+---
+## Code
+
+
+```r
+library(UsingR); data(galton)
+par(mfrow=c(1,2))
+hist(galton$child,col="blue",breaks=100)
+hist(galton$parent,col="blue",breaks=100)
+```
+
+<div class="rimage center"><img src="fig_01_01/galton.png" title="plot of chunk galton" alt="plot of chunk galton" class="plot" /></div>
+
+These are two histograms which show the two groups of data separately. In other words, we've lost the pairing information.  We might want a scatterplot to investigate their joint relationship. But for now, these two plots show the _marginal data_. The marginal data is the data, for example, of the children's heights disregarding the parents' heights.
+
+---
+## Finding the middle via least squares
+* Consider only the children's heights. 
+  * How could one describe the "middle"?
+  * One definition, let $Y_i$ be the height of child $i$ for $i = 1, \ldots, n = 928$, then define the middle as the value of $\mu$
+  that minimizes $$\sum_{i=1}^n (Y_i - \mu)^2$$
+* This is physical center of mass of the histrogram.
+* It's also the point that minimizes the (squared) distance from all the points.
+* You might have guessed that the answer $\mu = \bar X$, the arithmetic mean.
+
+
+---
+## Experiment
+### Use R studio's manipulate to see what value of $\mu$ minimizes the sum of the squared deviations.
+(The R library 'manipulate' won't work in html; the next figure shows the non-interactive version of this code.)
+
+```r
+par(mfrow=c(1,1))
+library(manipulate)
+myHist <- function(mu){
+  hist(galton$child,col="blue",breaks=100)
+  lines(c(mu, mu), c(0, 150),col="red",lwd=5)
+  mse <- mean((galton$child - mu)^2)
+  text(63, 150, paste("mu = ", mu))
+  text(63, 140, paste("MSE = ", round(mse, 2)))
+}
+manipulate(myHist(mu), mu = slider(62, 74, step = 0.5))
+```
+
+
+---
+## The least squares estimate is the empirical mean
+
+```r
+  hist(galton$child,col="blue",breaks=100)
+  meanChild <- mean(galton$child)
+  lines(rep(meanChild,100),seq(0,150,length=100),col="red",lwd=5)
+```
+
+<div class="rimage center"><img src="fig_01_01/lsm.png" title="plot of chunk lsm" alt="plot of chunk lsm" class="plot" /></div>
+
+
+---
+### The math follows as:
+$$ 
+\begin{align} 
+\sum_{i=1}^n (Y_i - \mu)^2 & = \
+\sum_{i=1}^n (Y_i - \bar Y + \bar Y - \mu)^2 \\ 
+& = \sum_{i=1}^n (Y_i - \bar Y)^2 + \
+2 \sum_{i=1}^n (Y_i - \bar Y)  (\bar Y - \mu) +\
+\sum_{i=1}^n (\bar Y - \mu)^2 \\
+& = \sum_{i=1}^n (Y_i - \bar Y)^2 + \
+2 (\bar Y - \mu) \sum_{i=1}^n (Y_i - \bar Y)  +\
+\sum_{i=1}^n (\bar Y - \mu)^2 \\
+& = \sum_{i=1}^n (Y_i - \bar Y)^2 + \
+2 (\bar Y - \mu)  (\sum_{i=1}^n Y_i - n \bar Y) +\
+\sum_{i=1}^n (\bar Y - \mu)^2 \\
+& = \sum_{i=1}^n (Y_i - \bar Y)^2 + \sum_{i=1}^n (\bar Y - \mu)^2\\ 
+& \geq \sum_{i=1}^n (Y_i - \bar Y)^2 \
+\end{align} 
+$$
+
+So we have proof that the least squares mean has to be the empirical mean.
+
+---
+## Comparing childrens' heights and their parents' heights
+
+
+```r
+plot(galton$parent,galton$child,pch=19,col="blue")
+```
+
+<div class="rimage center"><img src="fig_01_01/unnamed-chunk-2.png" title="plot of chunk unnamed-chunk-2" alt="plot of chunk unnamed-chunk-2" class="plot" /></div>
+
+
+This plot doesn't distinguish data that has multiple occurrences at the same point, but we can do that: 
+
+---
+Size of point represents number of points at that (X, Y) combination.
+
+
+```r
+freqData <- as.data.frame(table(galton$child, galton$parent))
+names(freqData) <- c("child", "parent", "freq")
+plot(as.numeric(as.vector(freqData$parent)), 
+     as.numeric(as.vector(freqData$child)),
+     pch = 21, col = "black", bg = "lightblue",
+     cex = .15 * freqData$freq, 
+     xlab = "parent", ylab = "child")
+```
+
+<div class="rimage center"><img src="fig_01_01/freqGalton.png" title="plot of chunk freqGalton" alt="plot of chunk freqGalton" class="plot" /></div>
+
+
+---
+## Regression through the origin
+* Suppose that $X_i$ are the parents' heights.
+* Consider picking the slope $\beta$ that minimizes $$\sum_{i=1}^n (Y_i - X_i \beta)^2$$
+* This is exactly using the origin as a pivot point picking the
+line that minimizes the sum of the squared vertical distances
+of the points to the line.
+* Imagine a bar extending diagonally from the origin;
+    * the angle of this bar is to be adjusted so that it as close as it can be to all (or most) of the points.
+    
+* A line through the origin is $y=x\beta$;
+    * where the y-intercept is set to 0.
+* Given the set of points $(X_i,Y_i)$, the line will lie on the points $(X_i,\hat{Y}_i)$
+    * where $\hat{Y}_i = X_i \beta$
+* Then, the distance $Y_i - \hat{Y}_i$ is the vertical distance between the points and the line.
+    * We want a line that minimizes that distance.
+    * Notice also that it isn't the orthogonal distance from the line.
+* Actually the origin is not the best pivot point,
+    * i.e. no one has a height of 0.
+    * The mean is a better pivot point.
+* Subtract the means of the children's heights and the parents' heights so that the origin is the mean of the parent and children's heights.
+    * The data is normalized, so actually the origin is still the pivot point but the data has shifted down and over.
+    * The heights are relative to the mean.
+* Use R studio's  manipulate function to experiment
+---
+
+Here we have a manipulate function showing the regression through the mean. (Again, it won't be functional in html.)
+
+```r
+myPlot <- function(beta){
+  y <- galton$child - mean(galton$child)
+  x <- galton$parent - mean(galton$parent)
+  freqData <- as.data.frame(table(x, y))
+  names(freqData) <- c("child", "parent", "freq")
+  plot(
+    as.numeric(as.vector(freqData$parent)), 
+    as.numeric(as.vector(freqData$child)),
+    pch = 21, col = "black", bg = "lightblue",
+    cex = .15 * freqData$freq, 
+    xlab = "parent", 
+    ylab = "child"
+    )
+  abline(0, beta, lwd = 3)
+  points(0, 0, cex = 2, pch = 19)
+  mse <- mean( (y - beta * x)^2 ) ## mean squared error
+  title(paste("beta = ", beta, "mse = ", round(mse, 3)))
+}
+manipulate(myPlot(beta), beta = slider(0, 1.8, step = 0.01))  
+## = slider(0.6, 1.2, step = 0.02))
+```
+
+
+---
+## The solution 
+### In the next few lectures we'll talk about why this is the solution
+
+```r
+lm(I(child - mean(child))~ I(parent - mean(parent)) - 1, data = galton)
+```
+
+```
+
+Call:
+lm(formula = I(child - mean(child)) ~ I(parent - mean(parent)) - 
+    1, data = galton)
+
+Coefficients:
+I(parent - mean(parent))  
+                   0.646  
+```
+
+
+* `-1` means "don't fit an intercept" because R automatically fits an intercept.
+
+---
+## Visualizing the best fit line
+### Size of points are frequencies at that X, Y combination
+
+```r
+freqData <- as.data.frame(table(galton$child, galton$parent))
+names(freqData) <- c("child", "parent", "freq")
+plot(as.numeric(as.vector(freqData$parent)), 
+     as.numeric(as.vector(freqData$child)),
+     pch = 21, col = "black", bg = "lightblue",
+     cex = .05 * freqData$freq, 
+     xlab = "parent", ylab = "child")
+lm1 <- lm(galton$child ~ galton$parent)
+lines(galton$parent,lm1$fitted,col="red",lwd=3)
+```
+
+<div class="rimage center"><img src="fig_01_01/unnamed-chunk-5.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" class="plot" /></div>
+
