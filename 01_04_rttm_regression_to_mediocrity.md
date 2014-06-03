@@ -15,21 +15,8 @@ mode        : selfcontained # {standalone, draft}
 
 ---
 
-```{r setup, cache = FALSE, echo = FALSE, message = FALSE, warning = FALSE, tidy = FALSE}
-# make this an external chunk that can be included in any file
-options(width = 100)
-opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig_01_04/')
 
-options(xtable.type = 'html')
-knit_hooks$set(inline = function(x) {
-  if(is.numeric(x)) {
-    round(x, getOption('digits'))
-  } else {
-    paste(as.character(x), collapse = ', ')
-  }
-})
-knit_hooks$set(plot = knitr:::hook_plot_html)
-```
+
 
 ## A historically famous idea, Regression to the Mean
 * Why is it that the children of tall parents tend to be tall, but not as tall as their parents? 
@@ -57,7 +44,8 @@ knit_hooks$set(plot = knitr:::hook_plot_html)
 
 ---
 ## Normalizing the data and setting plotting parameters
-```{r, echo = TRUE}
+
+```r
 library(UsingR)
 data(father.son)
 y <- (father.son$sheight - mean(father.son$sheight)) / sd(father.son$sheight)
@@ -73,6 +61,7 @@ myPlot <- function(x, y) {
 }
 ```
 
+
 ---
 ## Plot the data, code
 ```
@@ -85,13 +74,8 @@ abline(h = 0); abline(v = 0) # reference lines for no relationship
 
 ---
 ## Plot the data, results
-```{r, fig.height=6,fig.width=6,echo=FALSE}
-myPlot(x, y)
-abline(0, 1)
-abline(0, rho, lwd = 2)
-abline(0, 1 / rho, lwd = 2)
-abline(h = 0); abline(v = 0) 
-```
+<div class="rimage center"><img src="fig_01_04/unnamed-chunk-2.png" title="plot of chunk unnamed-chunk-2" alt="plot of chunk unnamed-chunk-2" class="plot" /></div>
+
 
 ---
 ## Discussion
