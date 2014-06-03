@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Some basic definitions</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+<!-- MathJax scripts -->
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+</head>
+
+<body>
+<h2>Some basic definitions</h2>
+
+<ul>
+<li>In this module, we&#39;ll cover some basic definitions and notation used throughout the class.</li>
+<li>We will try to minimize the amount of mathematics required for this class.</li>
+<li>No caclculus is required. </li>
+</ul>
+
+<hr/>
+
+<h2>Notation for data</h2>
+
+<ul>
+<li>We write \( X_1, X_2, \ldots, X_n \) to describe \( n \) data points.</li>
+<li>As an example, consider the data set \( \{1, 2, 5\} \) then 
+
+<ul>
+<li>\( X_1 = 1 \), \( X_2 = 2 \), \( X_3 = 5 \) and \( n = 3 \).</li>
+</ul></li>
+<li>We often use a different letter than \( X \), such as \( Y_1, \ldots , Y_n \).</li>
+<li>We will typically use Greek letters for things we don&#39;t know. 
+
+<ul>
+<li>Such as, \( \mu \) is a mean that we&#39;d like to estimate;</li>
+<li>And we&#39;ll estimate it with a data level quantity \( \bar X \).</li>
+</ul></li>
+<li>We will use capital letters for conceptual values of the variables and lowercase letters for realized values.
+
+<ul>
+<li>So this way we can write \( P(X_i > x) \). </li>
+<li>\( X_i \) is a conceptual random variable.</li>
+<li>\( x \) is a number that we plug into.</li>
+</ul></li>
+</ul>
+
+<hr/>
+
+<h2>The empirical mean</h2>
+
+<ul>
+<li>Define the empirical mean as
+\[ 
+\bar X = \frac{1}{n}\sum_{i=1}^n X_i. 
+ \]</li>
+<li>Notice if we subtract the mean from data points, we get data that has mean 0. That is, if we define
+\[ 
+\tilde X_i = X_i - \bar X.
+ \]
+The the mean of the \( \tilde X_i \) is 0.</li>
+<li>This process is called &ldquo;centering&rdquo; the random variables.</li>
+<li>The mean is a measure of central tendancy of the data.</li>
+<li>Recall from the previous lecture that the mean is 
+the least squares solution for minimizing
+\[ 
+  \sum_{i=1}^n (X_i - \mu)^2
+   \]</li>
+</ul>
+
+<hr/>
+
+<h2>The emprical standard deviation and variance</h2>
+
+<ul>
+<li>Define the empirical variance as 
+\[ 
+S^2 = \frac{1}{n-1} \sum_{i=1}^n (X_i - \bar X)^2 
+= \frac{1}{n-1} \left( \sum_{i=1}^n X_i^2 - n \bar X ^ 2 \right)
+ \]</li>
+<li>The empirical standard deviation is defined as
+\( S = \sqrt{S^2} \). Notice that the standard deviation has the same units as the data.</li>
+<li>The data defined by \( X_i / s \) have empirical standard deviation 1. This is called &ldquo;scaling&rdquo; the data.</li>
+<li>The empirical standard deviation is a measure of spread.</li>
+<li>Sometimes people divide by \( n \) rather than \( n-1 \) (the latter
+produces an unbiased estimate.)</li>
+</ul>
+
+<hr/>
+
+<h2>Normalization</h2>
+
+<ul>
+<li>The the data defined by
+\[ 
+Z_i = \frac{X_i - \bar X}{s}
+ \]
+have empirical mean zero and empirical standard deviation 1. </li>
+<li>The process of centering then scaling the data is called &ldquo;normalizing&rdquo; the data. </li>
+<li>Normalized data are centered at 0 and have units equal to standard deviations of the original data. </li>
+<li>Example, a value of 2 form normalized data means that data point
+was two standard deviations larger than the mean.</li>
+</ul>
+
+<hr/>
+
+<h2>The empirical covariance</h2>
+
+<ul>
+<li>Consider now when we have pairs of data, \( (X_i, Y_i) \).</li>
+<li>Their empirical covariance is 
+\[ 
+Cov(X, Y) = 
+\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar X) (Y_i - \bar Y)
+= \frac{1}{n-1}\left( \sum_{i=1}^n X_i Y_i - n \bar X \bar Y\right)
+ \]</li>
+<li>Think of \( X \) and \( Y \) as two vectors, and think of Cov() as a function which operates on these two vectors.</li>
+<li>The covariance is the sum of the centered products;
+
+<ul>
+<li>in units of \( X \) times units of \( Y \).</li>
+</ul></li>
+<li>Some people prefer to divide by \( n \) rather than \( n-1 \) (the latter
+produces an unbiased estimate.)</li>
+<li>The correlation is defined is
+\[ 
+Cor(X, Y) = \frac{Cov(X, Y)}{S_x S_y}
+ \]
+where \( S_x \) and \( S_y \) are the estimates of standard deviations 
+for the \( X \) observations and \( Y \) observations, respectively.</li>
+<li>Correlation is unitless and can be a value [-1,1] where 0 means no correlation.</li>
+</ul>
+
+<hr/>
+
+<h2>Some facts about correlation</h2>
+
+<ul>
+<li>\( Cor(X, Y) = Cor(Y, X) \)</li>
+<li>\( -1 \leq Cor(X, Y) \leq 1 \)</li>
+<li>\( Cor(X,Y) = 1 \) and \( Cor(X, Y) = -1 \) only when the \( X \) or \( Y \) observations fall perfectly on a positive or negative sloped line, respectively.</li>
+<li>\( Cor(X, Y) \) measures the strength of the linear relationship between the \( X \) and \( Y \) data, with stronger relationships as \( Cor(X,Y) \) heads towards -1 or 1.</li>
+<li>\( Cor(X, Y) = 0 \) implies no linear relationship. </li>
+</ul>
+
+</body>
+
+</html>
+
