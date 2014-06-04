@@ -236,9 +236,10 @@ mode        : selfcontained # {standalone, draft}</p>
 
 <ul>
 <li>Let \( \mu_i = \beta_0 + \beta_1 X_i \) and our estimates be
-\( \hat \mu_i = \hat \beta_0 + \hat \beta_1 X_i \). 
+\( \hat \mu_i = \hat \beta_0 + \hat \beta_1 X_i \).
 
 <ul>
+<li>\( \mu_i \) and \( \hat{\mu}_i \) simply exist to reduce notation.</li>
 <li>So \( \hat{\mu}_i \) is our fitted line.</li>
 </ul></li>
 <li>We want to minimize
@@ -293,7 +294,7 @@ is the least squares line.</li>
 <li>Consider forcing \( \beta_0 = 0 \) and thus \( \hat \beta_0=0 \); 
 that is, only considering lines through the origin</li>
 <li>The solution works out to be
-\[ \hat \beta_1 = \frac{\sum_{i=1^n} Y_i X_i}{\sum_{i=1}^n X_i^2}. \]</li>
+\[ \hat \beta_1 = \frac{\sum_{i=1}^n Y_i X_i}{\sum_{i=1}^n X_i^2}. \]</li>
 <li>which is also described as being the inner product of \( Y \) and \( X \) divided by the inner product of \( X \) by itself,
 \[ \frac{\langle Y,X \rangle}{\langle X,X \rangle} \]</li>
 </ul>
