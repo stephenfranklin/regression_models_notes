@@ -28,20 +28,24 @@ knit_hooks$set(inline = function(x) {
   }
 })
 knit_hooks$set(plot = knitr:::hook_plot_html)
+library(UsingR)
 ```
 ## Residuals
 * Model $Y_i = \beta_0 + \beta_1 X_i + \epsilon_i$ where $\epsilon_i \sim N(0, \sigma^2)$.
+    * $\epsilon_i$ is the true error of the true model, neither of which we'll ever know.
+    * Though we do have the observed values $X_i$ and $Y_i$. 
 * Observed outcome $i$ is $Y_i$ at predictor value $X_i$
-* Predicted outcome $i$ is $\hat Y_i$ at predictor valuve $X_i$ is
+* Predicted outcome $i$ is $\hat Y_i$ at predictor value $X_i$ is
   $$
   \hat Y_i = \hat \beta_0 + \hat \beta_1 X_i
   $$
-* Residual, the between the observed and predicted outcome
+    * That is our *estimated* model. Recall that the hat symbol as in $\hat Y$ indicates an estimated value.
+* The Residual is the distance between the observed and predicted outcome
   $$
   e_i = Y_i - \hat Y_i
   $$
-  * The vertical distance between the observed data point and the regression line
-* Least squares minimizes $\sum_{i=1}^n e_i^2$
+  * In other words, it's the vertical distance between the observed data point and the regression line
+* Least squares minimizes the sum of the squared residuals: $\sum_{i=1}^n e_i^2$
 * The $e_i$ can be thought of as estimates of the $\epsilon_i$.
 
 ---
@@ -55,6 +59,8 @@ knit_hooks$set(plot = knitr:::hook_plot_html)
   linear association of the predictor ($X$) removed.
 * One differentiates residual variation (variation after removing
 the predictor) from systematic variation (variation explained by the regression model).
+    * If there is a perfect relationship between Y and X, then there is no residual variation.
+    * If $\beta_1$ is 0, a horizontal line, and only the intercept, then there is all residual variation, and no regression relationship.
 * Residual plots highlight poor model fit.
 
 ---
@@ -64,7 +70,9 @@ the predictor) from systematic variation (variation explained by the regression 
 data(diamond)
 y <- diamond$price; x <- diamond$carat; n <- length(y)
 fit <- lm(y ~ x)
-e <- resid(fit)
+e <- resid(fit)  ## grab the residuals
+## or
+e <- fit$residuals
 yhat <- predict(fit)
 max(abs(e -(y - yhat)))
 max(abs(e - (y - coef(fit)[1] - coef(fit)[2] * x)))
@@ -85,6 +93,8 @@ for (i in 1 : n)
 
 ---
 ## Residuals versus X
+
+Here we plot the residuals versus X, which shows much more clearly any patterns that might exist in the residuals.
 ```{r, echo = FALSE, fig.height=5, fig.width=5}
 plot(diamond$carat, e,  
      xlab = "Mass (carats)", 
@@ -96,12 +106,17 @@ for (i in 1 : n)
   lines(c(x[i], x[i]), c(e[i], 0), col = "red" , lwd = 2)
 ```
 
+Having discovered such a pattern, we could then modify out model to better fit the outcomes.
+
 ---
 ## Non-linear data
+
+Here we simulate data that will have an additional pattern (`sin(x)`) in the data.
 ```{r, echo = TRUE, fig.height=5, fig.width=5}
 x <- runif(100, -3, 3); y <- x + sin(x) + rnorm(100, sd = .2); 
 plot(x, y); abline(lm(y ~ x))
 ```
+We can see some evidence of the pattern, but if we plot the residuals versus X, it will become much more apparent:
 
 ---
 ```{r, echo = TRUE, fig.height=5, fig.width=5}
@@ -111,13 +126,18 @@ abline(h = 0)
 
 ---
 ## Heteroskedasticity
+
+In this example, the standard deviation of Y depends on X.
 ```{r, echo = TRUE, fig.height=4.5, fig.width=4.5}
 x <- runif(100, 0, 6); y <- x + rnorm(100,  mean = 0, sd = .001 * x); 
 plot(x, y); abline(lm(y ~ x))
 ```
+The regression appears to perfectly predict the outcome.
 
 ---
 ## Getting rid of the blank space can be helpful
+
+With the residual versus X plot, we can see how the variance itself is variable, i.e. heteroskedastic.  
 ```{r, echo = TRUE, fig.height=4.5, fig.width=4.5}
 plot(x, resid(lm(y ~ x))); 
 abline(h = 0)
@@ -133,18 +153,25 @@ the average squared residual.
   \hat \sigma^2 = \frac{1}{n-2}\sum_{i=1}^n e_i^2.
   $$
 * The $n-2$ instead of $n$ is so that $E[\hat \sigma^2] = \sigma^2$
+    * We're subtracting 1 degree of freedom for the intercept, and 1 for the slope.
 
 ---
 ## Diamond example
+The residual variation is provided by the variable `sigma` in the `lm` summary.
+
 ```{r, echo = TRUE}
 y <- diamond$price; x <- diamond$carat; n <- length(y)
 fit <- lm(y ~ x)
-summary(fit)$sigma
+summary(fit)$sigma  ## residual variation
 sqrt(sum(resid(fit)^2) / (n - 2))
 ```
 
 ---
 ## Summarizing variation
+Recall that $S^2$ is the sample standard deviation. So,  
+$(n-1)*S^2 = \sum_{i=1}^n (Y_i - \bar Y)^2$.    
+And that represents total variation in $Y$.
+
 $$
 \begin{align}
 \sum_{i=1}^n (Y_i - \bar Y)^2 
@@ -169,6 +196,10 @@ $=\hat \beta_1 \sum_{i=1}^n (Y_i - \bar Y)(X_i - \bar X) -\hat\beta_1^2\sum_{i=1
 
 $= \hat \beta_1^2 \sum_{i=1}^n (X_i - \bar X)^2-\hat\beta_1^2\sum_{i=1}^n (X_i - \bar X)^2 = 0$
 
+Also recall that:  
+$\sum(X_i - \bar X)=0$  
+$\sum(Y_i - \bar Y)=0$  
+
 ---
 ## Summarizing variation
 $$
@@ -187,7 +218,7 @@ R^2 = \frac{\sum_{i=1}^n  (\hat Y_i - \bar Y)^2}{\sum_{i=1}^n (Y_i - \bar Y)^2}
 $$
 
 ---
-## Relation between $R^2$ and $r$ (the corrrelation)
+## Relation between $R^2$ and $r$ (the correlation)
 Recall that $(\hat Y_i - \bar Y) = \hat \beta_1  (X_i - \bar X)$
 so that
 $$
@@ -208,7 +239,7 @@ So, $R^2$ is literally $r$ squared.
 * $R^2$ is the sample correlation squared.
 * $R^2$ can be a misleading summary of model fit. 
   * Deleting data can inflate $R^2$.
-  * (For later.) Adding terms to a regression model always increases $R^2$.
+  * Adding terms (such as random noise) to a regression model always increases $R^2$.
 * Do `example(anscombe)` to see the following data.
   * Basically same mean and variance of X and Y.
   * Identical correlations (hence same $R^2$ ).
@@ -216,6 +247,8 @@ So, $R^2$ is literally $r$ squared.
 
 ---
 ## `data(anscombe);example(anscombe)`
+Anscombe's quartet illustrates the effects of outliers on statistical properties.  All four plots here have the same $R^2$, mean, variance, correlation, as well as the same regression line.
+
 ```{r, echo = FALSE, fig.height=5, fig.width=5, results='hide'}
 require(stats); require(graphics); data(anscombe)
 ff <- y ~ x
@@ -240,3 +273,4 @@ for(i in 1:4) {
 mtext("Anscombe's 4 Regression data sets", outer = TRUE, cex = 1.5)
 par(op)
 ```
+* Which shows that reducing a dataset to its $R^2$ value (or any statistic) isn't the best thing to do.
