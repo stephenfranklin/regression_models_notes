@@ -42,10 +42,16 @@ $$
 
 ---
 ## Review
+* $$\frac{\hat \theta - \theta}{\sigma_{\hat \theta}}$$
+* If we take an estimator $\hat \theta$ and subtract off its true value $\theta$ and divide by its standard error $\sigma_{\hat \theta}$
+    * then that often has a normal distribution $N(0,1)$ for large sample sizes.
+* If we replace $\sigma_{\hat \theta}$ with its estimated version $\hat \sigma_{\hat \theta}$
+    * then for large sample sizes it's also often normally distributed.
+    * And for small sample sizes it's often T distributed.
 * Statistics like $\frac{\hat \theta - \theta}{\hat \sigma_{\hat \theta}}$ often have the following properties.
     1. Is normally distributed and has a finite sample Student's T distribution if the estimated variance is replaced with a sample estimate (under normality assumptions).
     3. Can be used to test $H_0 : \theta = \theta_0$ versus $H_a : \theta >, <, \neq \theta_0$.
-    4. Can be used to create a confidence interval for $\theta$ via $\hat \theta \pm Q_{1-\alpha/2} \hat \sigma_{\hat \theta}$
+    4. Can be used to create a one-sided confidence interval for $\theta$ via $\hat \theta \pm Q_{1-\alpha/2} \hat \sigma_{\hat \theta}$
     where $Q_{1-\alpha/2}$ is the relevant quantile from either a normal or T distribution.
 * In the case of regression with iid sampling assumptions and normal errors, our inferences will follow
 very similarily to what you saw in your inference class.
@@ -65,6 +71,11 @@ Var\left(\frac{\sum_{i=1}^n (Y_i - \bar Y) (X_i - \bar X)}{\sum_{i=1}^n (X_i - \
 \end{align}
 $$
 
+* You want variability in your Xs because it decreases variability in your slope
+    * One small cluster of data would cause a large variability in the regression slope.
+* The maximum amount of variability in your data would arise from two very distant clusters, one relatively very low, the other very high.
+    * The problem with that sort of collection strategy is that there is no information about the relationship in between the two clusters; it could be completely non-linear and there would be no way to discover that.
+
 ---
 ## Results
 * $\sigma_{\hat \beta_1}^2 = Var(\hat \beta_1) = \sigma^2 / \sum_{i=1}^n (X_i - \bar X)^2$
@@ -83,16 +94,16 @@ hypothesis tests.
 ```{r}
 library(UsingR); data(diamond)
 y <- diamond$price; x <- diamond$carat; n <- length(y)
-beta1 <- cor(y, x) * sd(y) / sd(x)
-beta0 <- mean(y) - beta1 * mean(x)
-e <- y - beta0 - beta1 * x
-sigma <- sqrt(sum(e^2) / (n-2)) 
-ssx <- sum((x - mean(x))^2)
-seBeta0 <- (1 / n + mean(x) ^ 2 / ssx) ^ .5 * sigma 
-seBeta1 <- sigma / sqrt(ssx)
-tBeta0 <- beta0 / seBeta0; tBeta1 <- beta1 / seBeta1
-pBeta0 <- 2 * pt(abs(tBeta0), df = n - 2, lower.tail = FALSE)
-pBeta1 <- 2 * pt(abs(tBeta1), df = n - 2, lower.tail = FALSE)
+beta1 <- cor(y, x) * sd(y) / sd(x)  ## instead of lm()
+beta0 <- mean(y) - beta1 * mean(x)  ## "
+e <- y - beta0 - beta1 * x          ##
+sigma <- sqrt(sum(e^2) / (n-2))     ## residual
+ssx <- sum((x - mean(x))^2)         ## sum of squared Xs
+seBeta0 <- (1 / n + mean(x) ^ 2 / ssx) ^ .5 * sigma  ## standard error
+seBeta1 <- sigma / sqrt(ssx)  ## standard error
+tBeta0 <- beta0 / seBeta0; tBeta1 <- beta1 / seBeta1   ## t-stats
+pBeta0 <- 2 * pt(abs(tBeta0), df = n - 2, lower.tail = FALSE) ## p-value
+pBeta1 <- 2 * pt(abs(tBeta1), df = n - 2, lower.tail = FALSE) ## "
 coefTable <- rbind(c(beta0, seBeta0, tBeta0, pBeta0), c(beta1, seBeta1, tBeta1, pBeta1))
 colnames(coefTable) <- c("Estimate", "Std. Error", "t value", "P(>|t|)")
 rownames(coefTable) <- c("(Intercept)", "x")
@@ -127,25 +138,27 @@ $$
 \hat \beta_0 + \hat \beta_1 x_0
 $$
 * A standard error is needed to create a prediction interval.
+    * That is, the standard error quantifies a prediction's uncertainty.
 * There's a distinction between intervals for the regression
   line at point $x_0$ and the prediction of what a $y$ would be
   at point $x_0$. 
-* Line at $x_0$ se, $\hat \sigma\sqrt{\frac{1}{n} +  \frac{(x_0 - \bar X)^2}{\sum_{i=1}^n (X_i - \bar X)^2}}$
-* Prediction interval se at $x_0$, $\hat \sigma\sqrt{1 + \frac{1}{n} + \frac{(x_0 - \bar X)^2}{\sum_{i=1}^n (X_i - \bar X)^2}}$
+* Standard Error for a line at $x_0$ se, $\hat \sigma\sqrt{\frac{1}{n} +  \frac{(x_0 - \bar X)^2}{\sum_{i=1}^n (X_i - \bar X)^2}}$
+* Standard Error for a prediction interval se at $x_0$, $\hat \sigma\sqrt{1 + \frac{1}{n} + \frac{(x_0 - \bar X)^2}{\sum_{i=1}^n (X_i - \bar X)^2}}$
+    * The only difference is that 1 which gives it a wider interval.
 
 ---
 ## Plotting the prediction intervals
 
 ```
 plot(x, y, frame=FALSE,xlab="Carat",ylab="Dollars",pch=21,col="black", bg="lightblue", cex=2)
-abline(fit, lwd = 2)
+abline(fit, lwd = 2)  ## add a regression line
 xVals <- seq(min(x), max(x), by = .01)
 yVals <- beta0 + beta1 * xVals
-se1 <- sigma * sqrt(1 / n + (xVals - mean(x))^2/ssx)
-se2 <- sigma * sqrt(1 + 1 / n + (xVals - mean(x))^2/ssx)
-lines(xVals, yVals + 2 * se1)
-lines(xVals, yVals - 2 * se1)
-lines(xVals, yVals + 2 * se2)
+se1 <- sigma * sqrt(1 / n + (xVals - mean(x))^2/ssx)     ## SE for line
+se2 <- sigma * sqrt(1 + 1 / n + (xVals - mean(x))^2/ssx) ## SE for interval
+lines(xVals, yVals + 2 * se1)  ## 2 is approx 1.96 st.devs.
+lines(xVals, yVals - 2 * se1)  ## qt(.975,df=n-2)
+lines(xVals, yVals + 2 * se2)  ##   would be better here.
 lines(xVals, yVals - 2 * se2)
 ```
 
@@ -153,27 +166,32 @@ lines(xVals, yVals - 2 * se2)
 ## Plotting the prediction intervals
 ```{r, fig.height=5, fig.width==5, echo = FALSE, results='hide'}
 plot(x, y, frame=FALSE,xlab="Carat",ylab="Dollars",pch=21,col="black", bg="lightblue", cex=2)
-abline(fit, lwd = 2)
+abline(fit, lwd = 3)
 xVals <- seq(min(x), max(x), by = .01)
 yVals <- beta0 + beta1 * xVals
 se1 <- sigma * sqrt(1 / n + (xVals - mean(x))^2/ssx)
 se2 <- sigma * sqrt(1 + 1 / n + (xVals - mean(x))^2/ssx)
-lines(xVals, yVals + 2 * se1)
-lines(xVals, yVals - 2 * se1)
-lines(xVals, yVals + 2 * se2)
-lines(xVals, yVals - 2 * se2)
+lines(xVals, yVals + 2 * se1, col="red", lwd = 2)
+lines(xVals, yVals - 2 * se1, col="darkred",lwd = 2)
+lines(xVals, yVals + 2 * se2, col="cornflowerblue",lwd = 2)
+lines(xVals, yVals - 2 * se2, col="darkblue",lwd = 2)
 ```
 
 ---
 ## Discussion
 * Both intervals have varying widths.
-  * Least width at the mean of the Xs.
-* We are quite confident in the regression line, so that 
-  interval is very narrow.
-  * If we knew $\beta_0$ and $\beta_1$ this interval would have zero width.
-* The prediction interval must incorporate the variabilibity
-  in the data around the line.
-  * Even if we knew $\beta_0$ and $\beta_1$ this interval would still have width.
+    * The narrowest width is at the mean of the Xs because when an x is near the mean, that term approaches 0.
+    * An x that lies far away from the mean will have a less certain prediction of y, thus the lines bow out as we move away from the mean.
+* We are quite confident in the regression line, so that interval is very narrow.
+    * The $1/n$ term in the line's interval approaches zero as data increases.
+    * If we knew $\beta_0$ and $\beta_1$ this interval would have zero width.
+* The prediction interval must incorporate the variability in the data around the line.
+    * The extra 1 in the prediction interval sets a limit to the narrowest width no matter how much data is collected.
+    * Even if we knew $\beta_0$ and $\beta_1$ this interval would still have width.
+* The prediction interval has three components in its formula:
+    1. $\frac{(x_0 - \bar X)^2}{\sum_{i=1}^n (X_i - \bar X)^2}$: How close to the average are we, relative to the variability of X.
+    2. $1/n$: How good is our estimate of the line.
+    3. $1$: How much variability is there around the line.
 
 ---
 
@@ -184,8 +202,10 @@ p1 <- predict(fit, newdata, interval = ("confidence"))
 p2 <- predict(fit, newdata, interval = ("prediction"))
 plot(x, y, frame=FALSE,xlab="Carat",ylab="Dollars",pch=21,col="black", bg="lightblue", cex=2)
 abline(fit, lwd = 2)
-lines(xVals, p1[,2]); lines(xVals, p1[,3])
-lines(xVals, p2[,2]); lines(xVals, p2[,3])
+lines(xVals, p1[,2],col="darkred", lwd = 2)
+lines(xVals, p1[,3],col="red", lwd = 2)
+lines(xVals, p2[,2], col="darkblue",lwd = 2)
+lines(xVals, p2[,3], col="cornflowerblue",lwd = 2)
 ```
 
 ---
@@ -198,6 +218,8 @@ p1 <- predict(fit, newdata, interval = ("confidence"))
 p2 <- predict(fit, newdata, interval = ("prediction"))
 plot(x, y, frame=FALSE,xlab="Carat",ylab="Dollars",pch=21,col="black", bg="lightblue", cex=2)
 abline(fit, lwd = 2)
-lines(xVals, p1[,2]); lines(xVals, p1[,3])
-lines(xVals, p2[,2]); lines(xVals, p2[,3])
+lines(xVals, p1[,2],col="darkred", lwd = 2)
+lines(xVals, p1[,3],col="red", lwd = 2)
+lines(xVals, p2[,2], col="darkblue",lwd = 2)
+lines(xVals, p2[,3], col="cornflowerblue",lwd = 2)
 ```
