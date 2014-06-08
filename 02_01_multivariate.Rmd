@@ -41,8 +41,7 @@ breath mint useage (mints per day, X) and pulmonary function
 ## Multivariable regression analyses
 * An insurance company is interested in how last year's claims can predict a person's time in the hospital this year. 
   * They want to use an enormous amount of data contained in claims to predict a single number. Simple linear regression is not equipped to handle more than one predictor.
-* How can one generalize SLR to incoporate lots of regressors for
-the purpose of prediction?
+* How can one generalize SLR (simple linear regression) to incoporate lots of regressors for the purpose of prediction?
 * What are the consequences of adding lots of regressors? 
   * Surely there must be consequences to throwing variables in that aren't related to Y?
   * Surely there must be consequences to omitting variables that are?
@@ -57,12 +56,12 @@ Y_i =  \beta_1 X_{1i} + \beta_2 X_{2i} + \ldots +
 = \sum_{k=1}^p X_{ik} \beta_j + \epsilon_{i}
 $$
 * Here $X_{1i}=1$ typically, so that an intercept is included.
-* Least squares (and hence ML estimates under iid Gaussianity 
+* Least squares (and hence maximum likelihood estimates  (ML) under iid Gaussianity 
 of the errors) minimizes
 $$
 \sum_{i=1}^n \left(Y_i - \sum_{k=1}^p X_{ki} \beta_j\right)^2
 $$
-* Note, the important linearity is linearity in the coefficients.
+* Note, the important linearity is linearity in the coefficients as opposed to the variables.
 Thus
 $$
 Y_i =  \beta_1 X_{1i}^2 + \beta_2 X_{2i}^2 + \ldots +
@@ -70,11 +69,12 @@ Y_i =  \beta_1 X_{1i}^2 + \beta_2 X_{2i}^2 + \ldots +
 $$
 is still a linear model. (We've just squared the elements of the
 predictor variables.)
-
+    * In other words, we could have variables such as $X$, $X^2$, $\sin{X}$, or anything.
+    
 ---
 ## How to get estimates
 * The real way requires linear algebra. We'll go over an intuitive development instead. 
-* Recall that the LS estimate for regression through the origin, $E[Y_i]=X_{1i}\beta_1$, was $\sum X_i Y_i / \sum X_i^2$.
+* Recall that the LS (Least Squares) estimate for regression through the origin, $E[Y_i]=X_{1i}\beta_1$, was $\sum X_i Y_i / \sum X_i^2$.
 * Let's consider two regressors, $E[Y_i] = X_{1i}\beta_1 + X_{2i}\beta_2 = \mu_i$. 
 * Also, recall, that if $\hat \mu_i$ satisfies
 $$
@@ -87,34 +87,45 @@ $$
 \sum_{i=1}^n (Y_i - \hat \mu_i) (\hat \mu_i - \mu_i) = \sum_{i=1}^n (Y_i - \hat \beta_1 X_{1i} - \hat \beta_2 X_{2i})
 \left\{X_{1i}(\hat \beta_1 - \beta_1) + X_{2i}(\hat \beta_2 - \beta_2) \right\}
 $$
-* Thus we need 
+* Thus, to get the least squares estimates, we need to get these two equations to be zero: 
   1. $\sum_{i=1}^n (Y_i - \hat \beta_1 X_{1i} - \hat \beta_2 X_{2i}) X_{1i} = 0$ 
   2.  $\sum_{i=1}^n (Y_i - \hat \beta_1 X_{1i} - \hat \beta_2 X_{2i}) X_{2i} = 0$
+      * And if we have more than two regressors, we simply have more of those equations.
 * Hold $\hat \beta_1$ fixed in 2. and solve and we get that
 $$
 \hat \beta_2 = \frac{\sum_{i=1} (Y_i - X_{1i}\hat \beta_1)X_{2i}}{\sum_{i=1}^n X_{2i}^2}
 $$
+ 
 * Plugging this into 1. we get that
 $$
 0 = \sum_{i=1}^n \left\{Y_i - \frac{\sum_j X_{2j}Y_j}{\sum_j X_{2j}^2}X_{2i} + 
 \beta_1 \left(X_{1i} - \frac{\sum_j X_{2j}X_{1j}}{\sum_j X_{2j}^2} X_{2i}\right)\right\} X_{1i}
 $$
 
+* This term $\frac{\sum_j X_{2j}Y_j}{\sum_j X_{2j}^2}$ is the slope estimate from the regression through the origin model of $Y_i = X_{2i} + \beta_2 + \epsilon$.
+    * If we were to multiply by $X_{2i}$ we would get the predicted $Y_i$ from the model for $Y_i$ above.
+    * So $Y_i$ minus the predicted $Y_i$ is the residual.
+* Similarly, in second term $\frac{\sum_j X_{2j}X_{1j}}{\sum_j X_{2j}^2}$ is the residual for the model $X_{1i}=X_{2i} + \gamma + \epsilon_i$ (where $\gamma$ is whatever). 
+    * Multiplied by $X_{2i}$ we get the predicted version of $X_{1i}$.
+    * And subtracted by the observed $X_{i1}$ we get the residual.
+
 ---
 ## Continued
-* Re writing  this we get
+* By writing that equation as "the $i^{th}$ residual if  we were to have regressed $X_2$ out of $Y$ minus $\hat{\beta}_1$ times the $i^{th}$ residual should we have regressed $X_2$ our of $X_1$ (which in both cases they're regression through the origin)", we get:
 $$
 0 = \sum_{i=1}^n \left\{ e_{i, Y | X_2} - \hat \beta_1 e_{i, X_1 | X_2} 
 \right\} X_{1i} 
 $$
-where $e_{i, a | b} = a_i -  \frac{\sum_{j=1}^n a_j b_j }{\sum_{i=1}^n b_j^2} b_i$ is the residual when regressing $b$ from $a$ without an intercept.
+where the residual of $a$ given $b$, $e_{i, a | b} = a_i -  \frac{\sum_{j=1}^n a_j b_j }{\sum_{i=1}^n b_j^2} b_i$ is the residual when regressing $b$ from $a$ without an intercept.
 * We get the solution
 $$
 \hat \beta_1 = \frac{\sum_{i=1}^n e_{i, Y | X_2} e_{i, X_1 | X_2}}{\sum_{i=1}^n e_{i, X_1 | X_2} X_1}
 $$
+* Notice that denominator; we're about to replace it.
+
 
 ---
-* But note that 
+* Note that 
 $$
 \sum_{i=1}^n e_{i, X_1 | X_2}^2 
 = \sum_{i=1}^n e_{i, X_1 | X_2} \left(X_{1i} - \frac{\sum_j X_{2j}X_{1j}}{\sum_j X_{2j}^2} X_{2i}\right)
@@ -122,7 +133,8 @@ $$
 $$
 = \sum_{i=1}^n e_{i, X_1 | X_2} X_{1i} - \frac{\sum_j X_{2j}X_{1j}}{\sum_j X_{2j}^2} \sum_{i=1}^n e_{i, X_1 | X_2} X_{2i}
 $$
-But $\sum_{i=1}^n e_{i, X_1 | X_2} X_{2i} = 0$. So we get that
+But the sum of the residuals times the regressor equals zero: $\sum_{i=1}^n e_{i, X_1 | X_2} X_{2i} = 0$.  
+So we get that
 $$
 \sum_{i=1}^n e_{i, X_1 | X_2}^2  = \sum_{i=1}^n e_{i, X_1 | X_2} X_{1i}
 $$
@@ -130,13 +142,19 @@ Thus we get that
 $$
 \hat \beta_1 = \frac{\sum_{i=1}^n e_{i, Y | X_2} e_{i, X_1 | X_2}}{\sum_{i=1}^n e_{i, X_1 | X_2}^2}
 $$
+* The denominator has been replaced.
+* Think of it this way: there are two vectors: 
+    * the response $V_{1i}$ and  
+    * the predictor $V_{2i}$.
+    * So the equation above is just 
+    $$\frac{ \sum V_{1i} V_{2i} }{\sum V_{2i}^2}$$
+    * which is the slope estimate from the regression through the origin.
 
 ---
 ## Summing up fitting with two regressors
 $$\hat \beta_1 = \frac{\sum_{i=1}^n e_{i, Y | X_2} e_{i, X_1 | X_2}}{\sum_{i=1}^n e_{i, X_1 | X_2}^2}$$
-* That is, the regression estimate for $\beta_1$ is the regression 
-through the origin estimate having regressed $X_2$ out of both
-the response and the predictor.
+* That is, the regression estimate for $\beta_1$ is the regression through the origin estimate having regressed $X_2$ out of both the response and the predictor.
+    * It's as if we've removed $X_2$ and are looking at the response $Y$ from $X_1$ alone.
 * (Similarly, the regression estimate for $\beta_2$ is the regression  through the origin estimate having regressed $X_1$ out of both the response and the predictor.)
 * More generally, multivariate regression estimates are exactly those having removed the linear relationship of the other variables
 from both the regressor and response.
@@ -214,11 +232,15 @@ variable remains.
 ### Linear model with two variables and an intercept
 ```{r}
 n <- 100; x <- rnorm(n); x2 <- rnorm(n); x3 <- rnorm(n)
-y <- x + x2 + x3 + rnorm(n, sd = .1)
+y <- x + x2 + x3 + rnorm(n, sd = .1)  ## slopes are all 1, error is .1
+## A residual function: the residual of 'a' having regressed out 'b'.
 e <- function(a, b) a -  sum( a * b ) / sum( b ^ 2) * b
-ey <- e(e(y, x2), e(x3, x2))
-ex <- e(e(x, x2), e(x3, x2))
-sum(ey * ex) / sum(ex ^ 2)
+ey <- e(e(y, x2), e(x3, x2))  ## residual of y w/o x2 and x3.
+ex <- e(e(x, x2), e(x3, x2))  ## residual of x w/o x2 and x3
+sum(ey * ex) / sum(ex ^ 2)  ## slope of regression through the origin.
+
+## Here's R's method 
+## (which is actually a different method which is more efficient).
 coef(lm(y ~ x + x2 + x3 - 1)) #the -1 removes the intercept term
 ```
 
@@ -232,10 +254,10 @@ coef(lm(y ~ x + x2 + x3 - 1)) #the -1 removes the intercept term
 ```
 
 ---
-## Residuals again
+## Residuals again, a different method to acheive the same thing:
 ```{r}
-ey <- resid(lm(y ~ x2 + x3 - 1))
-ex <- resid(lm(x ~ x2 + x3 - 1))
+ey <- resid(lm(y ~ x2 + x3 - 1))  ## resid of y w/o x2 and x3
+ex <- resid(lm(x ~ x2 + x3 - 1))  ## resid of x w/o x2 and x3
 sum(ey * ex) / sum(ex ^ 2)
 coef(lm(y ~ x + x2 + x3 - 1)) #the -1 removes the intercept term
 ```
@@ -271,6 +293,7 @@ follows a $T$ distribution with $n-p$ degrees of freedom.
 * Linear models are the single most important applied statistical and machine learning techniqe, *by far*.
 * Some amazing things that you can accomplish with linear models
   * Decompose a signal into its harmonics.
+    * The discrete Fourier transform is a linear model where the $X$ terms are trigonometric terms.
   * Flexibly fit complicated functions.
   * Fit factor variables as predictors.
   * Uncover complex multivariate relationships with the response.
