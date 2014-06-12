@@ -17,7 +17,7 @@ mode        : selfcontained # {standalone, draft}
 ```{r setup, cache = FALSE, echo = FALSE, message = FALSE, warning = FALSE, tidy = FALSE}
 # make this an external chunk that can be included in any file
 options(width = 100)
-opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig/')
+opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig_01_06/')
 
 options(xtable.type = 'html')
 knit_hooks$set(inline = function(x) {
@@ -132,7 +132,9 @@ In this example, the standard deviation of Y depends on X.
 x <- runif(100, 0, 6); y <- x + rnorm(100,  mean = 0, sd = .001 * x); 
 plot(x, y); abline(lm(y ~ x))
 ```
-The regression appears to perfectly predict the outcome.
+The regression appears to perfectly predict the outcome.  
+
+If I could figure out how to increase the precision of this plot, we might see some evidence of heteroskedasticity.  But the better way to do this is as follows:
 
 ---
 ## Getting rid of the blank space can be helpful

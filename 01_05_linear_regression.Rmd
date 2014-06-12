@@ -17,7 +17,7 @@ mode        : selfcontained # {standalone, draft}
 ```{r setup, cache = FALSE, echo = FALSE, message = FALSE, warning = FALSE, tidy = FALSE}
 # make this an external chunk that can be included in any file
 options(width = 100)
-opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig/')
+opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig_01_05/')
 
 options(xtable.type = 'html')
 knit_hooks$set(inline = function(x) {
@@ -74,10 +74,11 @@ $$
 * Consider that 
 $$
 Y_i = \beta_0 + \beta_1 X_i + \epsilon_i
-= \beta_0 + a \beta_1 + \beta_1 (X_i - a) + \epsilon_i
+= (\beta_0 + a \beta_1) + \beta_1 (X_i - a) + \epsilon_i
 = \tilde \beta_0 + \beta_1 (X_i - a) + \epsilon_i
 $$
-So, shifting you $X$ values by value $a$ changes the intercept, but not the slope. 
+    * where the new $\tilde \beta_0 = \beta_0 + a \beta_1$.
+* So, shifting you $X$ values by value $a$ changes the intercept, but not the slope. 
 * Often $a$ is set to $\bar X$ so that the intercept is interpretted as the expected response at the average $X$ value.
 
 ---
@@ -174,7 +175,7 @@ Thus $`r round(coef(fit2)[1], 1)` is the expected price for the average sized di
 * `I()` has two uses: 
     * In a formula (as in this case) it inhibits the interpretation of operators so they are used only as arithmetical operators.
     * In a data.frame it inhibits the conversion of character vectors to factors; prepends the class "AsIs" to the object's classes.
-* `(carat - mean(carat)` just centers the data.
+* `(carat - mean(carat))` just centers the data.
 
 ---
 ## Changing scale
