@@ -186,4 +186,3 @@ fit <- lm(Fertility ~ . , data = swiss); plot(fit)
 - With Residuals vs Leverage, we're looking at the comparison of fit at that point versus potential for influence at that point.
 - Also shown in the plot are the names of various provinces of the dataset.
 - Try looking at the `dffits()` and `dfbetas()` and `cooks.distance()` for this dataset. Look for whether or not any of the provinces seems influential or has a large effect, and maybe explore those particular points.
-

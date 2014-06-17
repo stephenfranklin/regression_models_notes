@@ -35,7 +35,7 @@ runif(1)
   * In modeling, our interest lies in parsimonious, interpretable representations of the data that enhance our understanding of the phenomena under study.
   * A model is a lense through which to look at your data. (I attribute this quote to Scott Zeger)
   * Under this philosophy, what's the right model? Whatever model connects the data to a true, parsimonious statement about what you're studying.
-* There are nearly uncontable ways that a model can be wrong, in this lecture, we'll focus on variable inclusion and exclusion.
+* There are nearly uncountable ways that a model can be wrong, in this lecture, we'll focus on variable inclusion and exclusion.
 * Like nearly all aspects of statistics, good modeling decisions are context dependent.
   * A good model for prediction versus one for studying mechanisms versus one for trying to establish causal effects may not be the same.
 
@@ -53,12 +53,13 @@ In our context
 ## General rules
 * Omitting variables results in bias in the coeficients of interest - unless their regressors are uncorrelated with the omitted ones.
   * This is why we randomize treatments, it attempts to uncorrelate our treatment indicator with variables that we don't have to put in the model. 
-  * (If there's too many unobserved confounding variables, even randomization won't help you.)
+  * (If there's too many unobserved confounding variables, even randomization won't help you. Just by chance, some will be aliased with your treatment effect.)
 * Including variables that we shouldn't have increases standard errors of the regression variables.
-  * Actually, including any new variables increasese (actual, not estimated) standard errors of other regressors. So we don't want to idly throw variables into the model.
+  * Actually, including any new variables increases (the actual, not estimated) standard errors of other regressors. So we don't want to idly throw variables into the model.
 * The model must tend toward perfect fit as the number of non-redundant regressors approaches $n$.
-* $R^2$ increases monotonically as more regressors are included.
-* The SSE decreases monotonically as more regressors are included.
+    * If you have a response Y and there are 20 measurments, and you include 20 regressors of simulated random noise, then you will acheive perfect fit, even though those regressors have nothing to do with Y.
+* $R^2$ increases monotonically as more regressors are included, regardless of whether the regressors are important.
+* The Sum of the Squared Errors (SSE) decreases monotonically as more regressors are included.
 
 ---
 ## Plot of $R^2$ versus $n$
@@ -79,20 +80,25 @@ abline(h = 1)
 
 ---
 ## Variance inflation
+
+Here we've repeatedly simulated from the regression model, and we've gotten the $\beta_1$ ()coefficient. We'll look at that distribution and The standard deviation of that distribution is the population standard error of $\beta_1$.
 ```{r, echo = TRUE}
-n <- 100; nosim <- 1000
-x1 <- rnorm(n); x2 <- rnorm(n); x3 <- rnorm(n); 
-betas <- sapply(1 : nosim, function(i){
-  y <- x1 + rnorm(n, sd = .3)
-  c(coef(lm(y ~ x1))[2], 
-    coef(lm(y ~ x1 + x2))[2], 
-    coef(lm(y ~ x1 + x2 + x3))[2])
+n <- 100; nosim <- 1000  ## nosim = number of simulations
+x1 <- rnorm(n); x2 <- rnorm(n); x3 <- rnorm(n); ## 3 regressors
+ ## Grab the coefficient for x1 for every lm fit.
+betas <- sapply(1 : nosim, function(i){  ## do that nosim times
+  y <- x1 + rnorm(n, sd = .3) ## fit y given x1 and add random noise.
+  c(coef(lm(y ~ x1))[2],   ## fit only x1; grab coef for x1
+    coef(lm(y ~ x1 + x2))[2], ## fit x1 and x2; "
+    coef(lm(y ~ x1 + x2 + x3))[2]) ## fit x1, x2, x3; "
 })
 round(apply(betas, 1, sd), 5)
 ```
-
+We can see the evidence of variance inflation over increasing regressors.
 ---
 ## Variance inflation
+
+Here we make the variance inflation much worse by making x2 dependent on x1, and x3 highly dependent on x1.
 ```{r, echo = TRUE}
 n <- 100; nosim <- 1000
 x1 <- rnorm(n); x2 <- x1/sqrt(2) + rnorm(n) /sqrt(2)
@@ -105,7 +111,7 @@ betas <- sapply(1 : nosim, function(i){
 })
 round(apply(betas, 1, sd), 5)
 ```
-
+So the more correlated your regressors are the more variance inflation you're going to see.
 
 ---
 ## Variance inflation factors
@@ -115,38 +121,54 @@ was highly related to `x1`.
 * However, $\sigma$ drops out of the relative standard errors. If one sequentially adds variables, one can check the variance (or sd) inflation for including each one.
 * When the other regressors are actually orthogonal to the regressor of interest, then there is no variance inflation.
 * The variance inflation factor (VIF) is the increase in the variance for the ith regressor compared to the ideal setting where it is orthogonal to the other regressors.
-  * (The square root of the VIF is the increase in the sd ...)
+  * (The square root of the VIF is the increase in the sd instead of the increase in variance.)
 * Remember, variance inflation is only part of the picture. We want to include certain variables, even if they dramatically inflate our variance. 
 
 ---
 ## Revisting our previous simulation
+Previously, we simulated y (and errors) from x1, then x1 + x2, and x1 + x2 + x3. What we are going to talk about doesn't depend on y or the errors, but only on the regressors x1, x2, and x3. You can calclulate this for any problem.  Say we're interested in variable x1, and what is the consequence to the real standard error for including x2 in terms of the true standard errors expressed as a ratio of the standard errors.
+
+First we set `a` as the variance for $\beta_1$ from a model using only x1.
+Then we get two more terms, one for model that includes x1 + x2, the other which includes x1 + x2 + x3. Those two terms are the standard error $\hat{\sigma_{\hat{\beta_1}}$, where $\hat \sigma$ is divided by some function of x1, x2, or x3, and for which the $\hat \sigma$ drops out (for some reason):
+ $\hat{\sigma_{\hat{\beta_1}} = \frac{\hat{\sigma}}{f(x)}$
+ And from that we can see the variance inflation.
+ Each of those terms is a variance for that coefficient that has been divided by `a` (the variance for the coefficient from the model with only x1).
+ 
+The result is that we get a 90% increase in variation from the model that only includes x1 by including x2, and we get a 9-fold increase by including x3.
 ```{r, echo = TRUE}
 ##doesn't depend on which y you use,
 y <- x1 + rnorm(n, sd = .3)
-a <- summary(lm(y ~ x1))$cov.unscaled[2,2]
+a <- summary(lm(y ~ x1))$cov.unscaled[2,2]  ##[2,2] is the variance for beta1.
 c(summary(lm(y ~ x1 + x2))$cov.unscaled[2,2],
   summary(lm(y~ x1 + x2 + x3))$cov.unscaled[2,2]) / a
-temp <- apply(betas, 1, var); temp[2 : 3] / temp[1]
 ```
+
+Here we take the simulated betas and calculate the variance for x1, x1 + x2, and x1 + x2 + x3 (`temp <-`). Then we make two terms which are the ratios (x1+x2)/x1 and (x1+x2+x3)/x1.
+```{r}
+temp <- apply(betas, 1, var)
+temp[2 : 3] / temp[1]
+```
+And we see that the variation inflation of the simulated data is very similar to that of the randomly generated data.
+
 ---
 ## Swiss data
 ```{r}
-data(swiss); 
+data(swiss)
 fit1 <- lm(Fertility ~ Agriculture, data = swiss)
 a <- summary(fit1)$cov.unscaled[2,2]
-fit2 <- update(fit, Fertility ~ Agriculture + Examination)
-fit3 <- update(fit, Fertility ~ Agriculture + Examination + Education)
+fit2 <- update(fit1, Fertility ~ Agriculture + Examination)
+fit3 <- update(fit1, Fertility ~ Agriculture + Examination + Education)
   c(summary(fit2)$cov.unscaled[2,2],
     summary(fit3)$cov.unscaled[2,2]) / a 
 ```
 
 ---
-## Swiss data VIFs, 
+## Swiss data VIFs (variance inflation factors), 
 ```{r}
 library(car)
 fit <- lm(Fertility ~ . , data = swiss)
 vif(fit)
-sqrt(vif(fit)) #I prefer sd 
+sqrt(vif(fit)) ## I prefer sd inflation factors.
 ```
 
 ---
@@ -164,7 +186,7 @@ sqrt(vif(fit)) #I prefer sd
 * Principal components or factor analytic models on covariates are often useful for reducing complex covariate spaces.
 * Good design can often eliminate the need for complex model searches at analyses; though often control over the design is limited.
 * If the models of interest are nested and without lots of parameters differentiating them, it's fairly uncontroversial to use nested likelihood ratio tests. (Example to follow.)
-* My favoriate approach is as follows. Given a coefficient that I'm interested in, I like to use covariate adjustment and multiple models to probe that effect to evaluate it for robustness and to see what other covariates knock it out.  This isn't a terribly systematic approach, but it tends to teach you a lot about the the data as you get your hands dirty.
+* My favorate approach is as follows. Given a coefficient that I'm interested in, I like to use covariate adjustment and multiple models to probe that effect to evaluate it for robustness and to see what other covariates knock it out.  This isn't a terribly systematic approach, but it tends to teach you a lot about the the data as you get your hands dirty.
 
 ---
 ## How to do nested model testing in R
@@ -174,3 +196,4 @@ fit3 <- update(fit, Fertility ~ Agriculture + Examination + Education)
 fit5 <- update(fit, Fertility ~ Agriculture + Examination + Education + Catholic + Infant.Mortality)
 anova(fit1, fit3, fit5)
 ```
+The anova results compare a model to the model directly above it. So the degrees of freedom column `Df` shows the absolute difference between the model and the model above. The p-value shows the significance of the model compared the model above it.  Therefore you should definitely order your models by increase of number of regressors.
