@@ -95,6 +95,7 @@ betas <- sapply(1 : nosim, function(i){  ## do that nosim times
 round(apply(betas, 1, sd), 5)
 ```
 We can see the evidence of variance inflation over increasing regressors.
+
 ---
 ## Variance inflation
 
@@ -129,8 +130,8 @@ was highly related to `x1`.
 Previously, we simulated y (and errors) from x1, then x1 + x2, and x1 + x2 + x3. What we are going to talk about doesn't depend on y or the errors, but only on the regressors x1, x2, and x3. You can calclulate this for any problem.  Say we're interested in variable x1, and what is the consequence to the real standard error for including x2 in terms of the true standard errors expressed as a ratio of the standard errors.
 
 First we set `a` as the variance for $\beta_1$ from a model using only x1.
-Then we get two more terms, one for model that includes x1 + x2, the other which includes x1 + x2 + x3. Those two terms are the standard error $\hat{\sigma_{\hat{\beta_1}}$, where $\hat \sigma$ is divided by some function of x1, x2, or x3, and for which the $\hat \sigma$ drops out (for some reason):
- $\hat{\sigma_{\hat{\beta_1}} = \frac{\hat{\sigma}}{f(x)}$
+Then we get two more terms, one for model that includes x1 + x2, the other which includes x1 + x2 + x3. Those two terms are the standard error $\hat{\sigma_{\hat{\beta_1}}}$, where $\hat \sigma$ is divided by some function of x1, x2, or x3, and for which the $\hat \sigma$ drops out (for some reason):
+ $\hat{\sigma_{\hat{\beta_1}}} = \frac{\hat{\sigma}}{f(x)}$
  And from that we can see the variance inflation.
  Each of those terms is a variance for that coefficient that has been divided by `a` (the variance for the coefficient from the model with only x1).
  
