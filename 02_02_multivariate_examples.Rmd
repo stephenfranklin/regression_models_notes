@@ -16,6 +16,7 @@ mode        : selfcontained # {standalone, draft}
 ```{r setup, cache = F, echo = F, message = F, warning = F, tidy = F, results='hide'}
 # make this an external chunk that can be included in any file
 options(width = 100)
+require('knitr')
 opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig_02_02/')
 
 options(xtable.type = 'html')
@@ -30,7 +31,7 @@ knit_hooks$set(plot = knitr:::hook_plot_html)
 runif(1)
 ```
 
-
+# Multivariate Examples
 
 ## Swiss fertility data
 ```{r, fig.height=4.5, fig.width=4.5}
@@ -56,22 +57,26 @@ All variables but ‘Fertility’ give proportions of the population.
 
 
 ---
-## Calling `lm`
+## Calling lm()
+Here we make a model of *all* the variables (by using '.') versus Fertility, and look at the coefficients. The `lm()` function in this case considers each variable against fertility holding all other variables constant. In other words, it adjusts each variable for all of the others.
 `summary(lm(Fertility ~ . , data = swiss))`
 ```{r, echo = FALSE}
 summary(lm(Fertility ~ . , data = swiss))$coefficients
 ```
+We pick out the first variable, Agriculture, which is the percentage of males involved in agriculture as occupation for the region. The intercept is -0.17, which means that we expect a 17% decrease in fertility for every 1% increase in a region's male agricultural workers.
 
 ---
 ## Example interpretation
 * Agriculture is expressed in percentages (0 - 100)
 * Estimate is -0.1721.
 * We estimate an expected 0.17 decrease in standardized fertility for every 1\% increase in percentage of males involved in agriculture in holding the remaining variables constant.
-* The t-test for $H_0: \beta_{Agri} = 0$ versus $H_a: \beta_{Agri} \neq 0$ is  significant.
-* Interestingly, the unadjusted estimate is 
+* The t-test for $H_0: \beta_{Agri} = 0$ versus $H_a: \beta_{Agri} \neq 0$ is significant.
+
+Interestingly, the unadjusted estimate is 
 ```{r}
 summary(lm(Fertility ~ Agriculture, data = swiss))$coefficients
 ```
+That model compares only the two variables, ignoring all the others. The intercept estimate is now 0.19, which is quite different, having reversed sign, but remains significant (p-value of 0.0015).
 
 ---
 How can adjustment reverse the sign of an effect? Let's try a simulation.
@@ -97,6 +102,7 @@ abline(0, coef(lm(y ~ x1 + x2))[2], lwd = 2)
 * The sign reverses itself with the inclusion of Examination and Education, but of which are negatively correlated with Agriculture.
 * The percent of males in the province working in agriculture is negatively related to educational attainment (correlation of `r cor(swiss$Agriculture, swiss$Education)`) and Education and Examination (correlation of `r cor(swiss$Education, swiss$Examination)`) are obviously measuring similar things. 
   * Is the positive marginal an artifact for not having accounted for, say, Education level? (Education does have a stronger effect, by the way.)
+* Which model is correct? (Including or excluding Education and Examination?)
 * At the minimum, anyone claiming that provinces that are more agricultural have higher fertility rates would immediately be open to criticism.
 
 ---
@@ -171,6 +177,8 @@ lm(count ~
    I(1 * (spray == 'D')) + I(1 * (spray == 'E')) +
    I(1 * (spray == 'F')) + I(1 * (spray == 'A')), data = InsectSprays)
 ```
+R chooses the last one as the reference. But usually you would just let R interpret the factor variable automatically. But you could do it this way if you want to be 100% sure that the reference is the one you want.
+
 
 ---
 ## What if we omit the intercept?
@@ -178,6 +186,7 @@ lm(count ~
 summary(lm(count ~ spray - 1, data = InsectSprays))$coef
 unique(ave(InsectSprays$count, InsectSprays$spray))
 ```
+By omitting the intercept, we get 6 means and 6 intercepts instead of 5. Previously, with the intercept, Spray A was the reference and therefore didn't have any estimates.
 
 ---
 ## Summary
@@ -370,7 +379,7 @@ abline(c(lmBoth$coeff[1] + lmBoth$coeff[3],lmBoth$coeff[2] ),col="black",lwd=3)
 
 ## Two lines, different slopes (interactions)
 
-In this model, we have a variable for gender (Sex) and a variable for Year, and another variable which is Sex multiplied by Year. The third variable is an interaction.
+In this model, we have a variable for gender (Sex) and a variable for Year, and another variable which is Sex * Year. The third variable is an interaction.
 
 $$Hu_i = b_0 + b_1 \mathbb{1}(Sex_i="Male") + b_2 Y_i + b_3 \mathbb{1}(Sex_i="Male")\times Y_i + e^+_i$$
 

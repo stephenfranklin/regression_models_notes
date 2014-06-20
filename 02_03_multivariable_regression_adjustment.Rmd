@@ -12,10 +12,13 @@ url:
   assets: ../../assets
 widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
 mode        : selfcontained # {standalone, draft}
+
 ---
+
 ```{r setup, cache = F, echo = F, message = F, warning = F, tidy = F, results='hide'}
 # make this an external chunk that can be included in any file
 options(width = 100)
+require('knitr')
 opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig_02_03/')
 
 options(xtable.type = 'html')
@@ -29,37 +32,11 @@ knit_hooks$set(inline = function(x) {
 knit_hooks$set(plot = knitr:::hook_plot_html)
 runif(1)
 ```
+# Multivariable Regression Adjustment
+
 ## Consider the following simulated data
-Code for the first plot, rest omitted
-(See the git repo for the rest of the code.)
-```
-n <- 100; t <- rep(c(0, 1), c(n/2, n/2)); x <- c(runif(n/2), runif(n/2)); 
-  ##  t is the treatment effect; 50 zero followed by 50 ones.
-beta0 <- 0; beta1 <- 2
-tau <- 1  ## tau is the treatment effect parameter.
-sigma <- .2
-y <- beta0 + x * beta1 + t * tau + rnorm(n, sd = sigma)
-  ## that last term is effectively the error (epsilon).
-plot(x, y, type = "n", frame = FALSE)
-  ## type='n' makes the frame of plot only; points and lines added later.
-  ## line disregarding treatment
-abline(lm(y ~ x), lwd = 2)
-  ## means of the two groups (horizontal):
-abline(h = mean(y[1 : (n/2)]), lwd = 3)
-abline(h = mean(y[(n/2 + 1) : n]), lwd = 3)
-  ## model including treatment, and lines for the two groups.
-fit <- lm(y ~ x + t)
-abline(coef(fit)[1], coef(fit)[2], lwd = 3)
-abline(coef(fit)[1] + coef(fit)[3], coef(fit)[2], lwd = 3)
-  ## colored points on top of the lines.
-points(x[1 : (n/2)], y[1 : (n/2)], pch = 21, col = "black", bg = "lightblue", cex = 2)
-points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon", cex = 2)
-```
-
-
----
-## Simulation 1
-```{r, fig.height=5, fig.width=5, echo = FALSE, results='hide'}
+### Simulation 1
+```{r, fig.height=5, fig.width=5, echo = TRUE}
 n <- 100; t <- rep(c(0, 1), c(n/2, n/2)); x <- c(runif(n/2), runif(n/2)); 
 beta0 <- 0; beta1 <- 2; tau <- 1; sigma <- .2
 y <- beta0 + x * beta1 + t * tau + rnorm(n, sd = sigma)
@@ -75,6 +52,7 @@ points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon
 ```
 
 ---
+
 ## Discussion
 ### Some things to note in this simulation
 * The difference between the lower and upper diagonal lines is the adjusted treatment effect.
@@ -89,8 +67,9 @@ points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon
   * The relationship between group and Y disregarding X is about the same as holding X constant
 
 ---
+
 ## Simulation 2
-```{r, fig.height=5, fig.width=5, echo = FALSE, results='hide'}
+```{r, fig.height=5, fig.width=5, echo = TRUE}
 n <- 100; t <- rep(c(0, 1), c(n/2, n/2)); x <- c(runif(n/2), 1.5 + runif(n/2)); 
 beta0 <- 0; beta1 <- 2; tau <- 0; sigma <- .2
 y <- beta0 + x * beta1 + t * tau + rnorm(n, sd = sigma)
@@ -105,8 +84,8 @@ points(x[1 : (n/2)], y[1 : (n/2)], pch = 21, col = "black", bg = "lightblue", ce
 points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon", cex = 2)
 ```
 
-
 ---
+
 ## Discussion
 ### Some things to note in this simulation
 * Massive difference (or effect) between treated and control.
@@ -129,8 +108,9 @@ points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon
   * This conclusion is entirely based on the model. 
 
 ---
+
 ## Simulation 3
-```{r, fig.height=5, fig.width=5}
+```{r, fig.height=5, fig.width=5, echo=TRUE}
 n <- 100; t <- rep(c(0, 1), c(n/2, n/2)); x <- c(runif(n/2), .9 + runif(n/2)); 
 beta0 <- 0; beta1 <- 2; tau <- -1; sigma <- .2
 y <- beta0 + x * beta1 + t * tau + rnorm(n, sd = sigma)
@@ -146,6 +126,7 @@ points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon
 ```
 
 ---
+
 ## Discussion
 ### Some things to note in this simulation
 * Marginal association has red group higher than blue.
@@ -157,8 +138,9 @@ holding X fixed.
 
 
 ---
+
 ## Simulation 4
-```{r, fig.height=5, fig.width=5}
+```{r, fig.height=5, fig.width=5, echo=TRUE}
 n <- 100; t <- rep(c(0, 1), c(n/2, n/2)); x <- c(.5 + runif(n/2), runif(n/2)); 
 beta0 <- 0; beta1 <- 2; tau <- 1; sigma <- .2
 y <- beta0 + x * beta1 + t * tau + rnorm(n, sd = sigma)
@@ -174,6 +156,7 @@ points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon
 ```
 
 ---
+
 ## Discussion
 ### Some things to note in this simulation
 * No marginal association between group status and Y.
@@ -183,9 +166,10 @@ points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon
 holding X fixed.
 
 ---
+
 ## Simulation 5
 #### The idea of a treatment effect doesn't make sense in this case.
-```{r, fig.height=5, fig.width=5}
+```{r, fig.height=5, fig.width=5, echo=TRUE}
 n <- 100; t <- rep(c(0, 1), c(n/2, n/2)); x <- c(runif(n/2, -1, 1), runif(n/2, -1, 1)); 
 beta0 <- 0; beta1 <- 2; tau <- 0; tau1 <- -4; sigma <- .2
 y <- beta0 + x * beta1 + t * tau + t * x * tau1 + rnorm(n, sd = sigma)
@@ -201,6 +185,7 @@ points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon
 ```
 
 ---
+
 ## Discussion
 ### Some things to note from this simulation
 * There is no such thing as a group effect here. 
@@ -210,9 +195,10 @@ points(x[(n/2 + 1) : n], y[(n/2 + 1) : n], pch = 21, col = "black", bg = "salmon
   * There's lots of information about group effects holding X fixed.
 
 ---
+
 ## Simulation 6
 #### x2 is color-coded
-```{r, fig.height=5, fig.width=5}
+```{r, fig.height=5, fig.width=5, echo=TRUE}
 p <- 1
 n <- 100; x2 <- runif(n); x1 <- p * runif(n) - (1 - p) * x2 
 beta0 <- 0; beta1 <- 1; tau <- 4 ; sigma <- .01
@@ -224,25 +210,34 @@ points(x1, y, pch = 21, col = "black", bg = co.pal[round((n - 1) * x2 + 1)], cex
 ```
 
 ---
+
 ### Do this to investigate the bivariate relationship
+
 This 3-d plot made with package 'rgl' isn't shown here.
 Run in R, or see lecture.
+
 ```
+
 library(rgl)
 plot3d(x1, x2, y)
 ```
+
 It shows a strong relationship between y and x2, and an unclear, noisy realtionship between y and x1.
 
 ---
+
 ### Residual relationship
 Here we plot the residual of y having taken out the effect of x2 against the residual of x1 having taken out the effect of x2.
-```{r, fig.height=5, fig.width=5}
+
+```{r, fig.height=5, fig.width=5, echo=TRUE}
 plot(resid(lm(x1 ~ x2)), resid(lm(y ~ x2)), frame = FALSE, col = "black", bg = "lightblue", pch = 21, cex = 2)
 abline(lm(I(resid(lm(x1 ~ x2))) ~ I(resid(lm(y ~ x2)))), lwd = 2)
 ```
+
 We see almost no variation left; the data is nearly perfectly explained.
 
 ---
+
 ## Discussion
 ### Some things to note from this simulation
 
@@ -253,6 +248,7 @@ We see almost no variation left; the data is nearly perfectly explained.
   * Almost no residual variability after accounting for X2.
 
 ---
+
 ## Some final thoughts
 * Modeling multivariate relationships is difficult.
 * Play around with simulations to see how the
