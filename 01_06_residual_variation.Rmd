@@ -17,6 +17,7 @@ mode        : selfcontained # {standalone, draft}
 ```{r setup, cache = FALSE, echo = FALSE, message = FALSE, warning = FALSE, tidy = FALSE}
 # make this an external chunk that can be included in any file
 options(width = 100)
+require('knitr')
 opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig_01_06/')
 
 options(xtable.type = 'html')
@@ -80,7 +81,7 @@ max(abs(e - (y - coef(fit)[1] - coef(fit)[2] * x)))
 
 ---
 ## Residuals are the signed length of the red lines
-```{r, echo = FALSE, fig.height=5, fig.width=5}
+```{r, echo = TRUE, fig.height=5, fig.width=5}
 plot(diamond$carat, diamond$price,  
      xlab = "Mass (carats)", 
      ylab = "Price (SIN $)", 
@@ -95,7 +96,7 @@ for (i in 1 : n)
 ## Residuals versus X
 
 Here we plot the residuals versus X, which shows much more clearly any patterns that might exist in the residuals.
-```{r, echo = FALSE, fig.height=5, fig.width=5}
+```{r, echo = TRUE, fig.height=5, fig.width=5}
 plot(diamond$carat, e,  
      xlab = "Mass (carats)", 
      ylab = "Residuals (SIN $)", 
