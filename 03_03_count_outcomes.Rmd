@@ -61,6 +61,7 @@ setwd("~/git_folder/datascience/regmod/regression_models_notes/")
     - Analyzing contigency table data
 
 ---
+
 ## The Poisson mass function
 - $X \sim Poisson(t\lambda)$ if
 $$
@@ -173,18 +174,32 @@ $b_1$ - increase in log number of hits per unit day
 
 $e_i$ - variation due to everything we didn't measure
 
+* This is not the Poisson model,
+    * which would model the conceptual mean of Y, $\log(\mu_i)$, 
+    * which would solve the main problem here.
+* The log of 0 is undefined, so taking the log of outcomes which are 0 is problematic.
+* Logging outcomes imparts a particular interpretation of the coefficients when you exponentiate them. 
+
 ---
+
 ## Exponentiating coefficients
 - $e^{E[\log(Y)]}$ geometric mean of $Y$. 
+    - y must be positive.
     - With no covariates, this is estimated by $e^{\frac{1}{n}\sum_{i=1}^n \log(y_i)} = (\prod_{i=1}^n y_i)^{1/n}$
+    - That's the geometric mean.
+    - Useful for relative changes, i.e. 1.03%
 - When you take the natural log of outcomes and fit a regression model, your exponentiated coefficients
-estimate things about geometric means.
+estimate things about geometric means, rather than about the natural scale means.
 - $e^{\beta_0}$ estimated geometric mean hits on day 0
 - $e^{\beta_1}$ estimated relative increase or decrease in geometric mean hits per day
-- There's a problem with logs with you have zero counts, adding a constant works
+- There's a problem with logs when you have zero counts (they're undefined).
+    - Adding a constant works (`+ 1` or `+ 0.5`, etc.).
+- The problem with adding a constant is that it's less inuitive to read.
+    - The interpretation is now, for example, the relative change in geometric mean hits **+ 1** per day.
 ```{r}
 round(exp(coef(lm(I(log(gaData$visits + 1)) ~ gaData$julian))), 5)
 ```
+Here we see a 0.2% increase in hits per day.
 
 ---
 
@@ -192,20 +207,30 @@ round(exp(coef(lm(I(log(gaData$visits + 1)) ~ gaData$julian))), 5)
 
 __Linear__
 
+The Linear Model models the number of hits as a linear relationship:
 $$ NH_i = b_0 + b_1 JD_i + e_i $$
 
-or
-
+which implies an expected value relationship between the outcome and the linear predictor:
 $$ E[NH_i | JD_i, b_0, b_1] = b_0 + b_1 JD_i$$
 
 __Poisson/log-linear__
 
+The Poisson Log-linear Model models the log of the expected value as the linear predictor:  
 $$ \log\left(E[NH_i | JD_i, b_0, b_1]\right) = b_0 + b_1 JD_i $$
 
-or
-
+which we can invert to show that the expected value is the exponent of the linear predictor:
 $$ E[NH_i | JD_i, b_0, b_1] = \exp\left(b_0 + b_1 JD_i\right) $$
 
+- Notice how might interpret $b_1$ here:
+The expected value for the number of hits for a Julian date that equals j+1 minus that which equals j, equals beta_1.
+$$E[NH_i | JD_i = j+1] - E[NH_i | JD_i = j] = b_1$$
+- We can raise both sides by $e$, and that is the relative increase in the mean number of hits per one-day increase.
+    - If there were other covariates, we would consider them to be held constant.
+
+Modeling the Log Counts as opposed to the Poisson Log-Linear:
+- The Log Counts Model models the expected value of the log of the number of hits, i.e. the mean of the log of the outcomes directly.
+    $$E[\log(NH_i)]$$
+- Differs from the Poisson Model which logs the expected value, i.e. the log of the mean.
 
 ---
 
@@ -222,6 +247,8 @@ $$ E[NH_i | JD_i, b_0, b_1] = \exp\left(b_0 \right)\exp\left(b_1 JD_i\right) $$
 
 If $JD_i$ is increased by one unit, $E[NH_i | JD_i, b_0, b_1]$ is multiplied by $\exp\left(b_1\right)$
 
+So $e^{\beta_1}$ is the relative change in expected web traffic per 1-day increase.
+
 ---
 
 ## Poisson regression in R
@@ -229,9 +256,14 @@ If $JD_i$ is increased by one unit, $E[NH_i | JD_i, b_0, b_1]$ is multiplied by 
 ```{r poisReg, dependson="linReg",fig.height=4.5,fig.width=4.5, cache=TRUE}
 plot(gaData$julian,gaData$visits,pch=19,col="darkgrey",xlab="Julian",ylab="Visits")
 glm1 <- glm(gaData$visits ~ gaData$julian,family="poisson")
-abline(lm1,col="red",lwd=3); lines(gaData$julian,glm1$fitted,col="blue",lwd=3)
-```
 
+## Linear Model fit
+abline(lm1,col="red",lwd=3)
+
+## GLM fit
+lines(gaData$julian,glm1$fitted,col="blue",lwd=3)
+```
+Notice that the glm fit (blue) is curved because it's on a log of the mean scale.
 
 ---
 
@@ -240,6 +272,8 @@ abline(lm1,col="red",lwd=3); lines(gaData$julian,glm1$fitted,col="blue",lwd=3)
 ```{r, dependson="poisReg",fig.height=4.5,fig.width=4.5}
 plot(glm1$fitted,glm1$residuals,pch=19,col="grey",ylab="Residuals",xlab="Fitted")
 ```
+
+Instead of `family = poisson` in the glm model, we can use `family = quasipoisson`, which uses a multiplicative factor with the mean, and results in robust standard errors.
 
 ---
 
@@ -280,6 +314,11 @@ confint.agnostic(glm1)
 
 ## Rates 
 
+In this example, we have a variable which is the overall number of web hits for two sites (jtleek.com and simplystatistics.org) and we have another variable which is the number of web hits for only simplystatistics.org.
+
+We want to know the number of web hits that simply statistics receives as a percentage of overall web hits.  
+- So NHSS is the number of web hits for simplystatistics.org
+- And NH is the number of web hits for both.
 
 <br><br>
 
@@ -294,9 +333,16 @@ $$ \log\left(E[NHSS_i | JD_i, b_0, b_1]\right) - \log(NH_i)  =  b_0 + b_1 JD_i $
 
 $$ \log\left(E[NHSS_i | JD_i, b_0, b_1]\right) = \log(NH_i) + b_0 + b_1 JD_i $$
 
+This shows how we can model our Log Counts (NHSS) by moving the reference (NH) into the RHS as a log offset (a term without a coefficient). This is where we would put in a monitoring time or any reference that we want to measure a variable relative to.
+
 ---
 
 ## Fitting rates in R 
+
+- In R, the offset can be stated explicitly,
+    - `offset=log(visits+1)` 
+- or it can simply be added to the model's regressor,
+    - ...`~ julian(gaData$date) + log(visits+1)`
 
 ```{r ratesFit,dependson="agnostic", cache=TRUE,fig.height=4,fig.width=4}
 glm2 <- glm(gaData$simplystats ~ julian(gaData$date),offset=log(visits+1),
@@ -304,10 +350,12 @@ glm2 <- glm(gaData$simplystats ~ julian(gaData$date),offset=log(visits+1),
 plot(julian(gaData$date),glm2$fitted,col="blue",pch=19,xlab="Date",ylab="Fitted Counts")
 points(julian(gaData$date),glm1$fitted,col="red",pch=19)
 ```
+Recall that we're adding 1 to the visits to avoid $log(0)$.
 
 ---
 
-## Fitting rates in R 
+## Fitting rates in R
+Here we fit the rate instead of the count. The model is the same, using a logged offset. The plot just divides by the reference (`visits+1`) (without logging it.)
 
 ```{r,dependson="ratesFit",fig.height=4,fig.width=4}
 glm2 <- glm(gaData$simplystats ~ julian(gaData$date),offset=log(visits+1),
@@ -325,3 +373,5 @@ lines(julian(gaData$date),glm2$fitted/(gaData$visits+1),col="blue",lwd=3)
 * [Wikipedia on Poisson regression](http://en.wikipedia.org/wiki/Poisson_regression), [Wikipedia on overdispersion](http://en.wikipedia.org/wiki/Overdispersion)
 * [Regression models for count data in R](http://cran.r-project.org/web/packages/pscl/vignettes/countreg.pdf)
 * [pscl package](http://cran.r-project.org/web/packages/pscl/index.html) - the function _zeroinfl_ fits zero inflated models. 
+
+We often encounter data with many more zero counts than the Poisson model would anticipate. We call this situation ** zero inflation**. The `pscl` package contains zero inflation models (ZIP) for dealing with exactly that problem.  There are also many other ways of handling it.
