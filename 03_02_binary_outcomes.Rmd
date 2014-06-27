@@ -154,6 +154,7 @@ $\exp(b_1)$ - Odds ratio of win probability for each point scored (compared to z
 If there were other variables involved they would be held fixed.
 
 ---
+
 ## Odds
 - Imagine that you are playing a game where you flip a coin with success probability $p$.
 - If it comes up heads, you win $X$. If it comes up tails, you lose $Y$.
@@ -167,6 +168,7 @@ If there were other variables involved they would be held fixed.
     - (If $p < 0.5$ you have to pay less if you lose than you get if you win.)
 
 ---
+
 ## Visualizing fitting logistic regression curves
 Here we have a `manipulate()` which won't work as a pdf.
 
@@ -208,7 +210,6 @@ summary(logRegRavens)
 plot(ravensData$ravenScore,logRegRavens$fitted,pch=19,col="blue",xlab="Score",ylab="Prob Ravens Win")
 ```
 
-
 ---
 
 ## Odds ratios and confidence intervals
@@ -226,8 +227,6 @@ exp(confint(logRegRavens))
 anova(logRegRavens,test="Chisq")
 ```
 
-
-
 ---
 
 ## Interpreting Odds Ratios
@@ -240,7 +239,6 @@ anova(logRegRavens,test="Chisq")
 * For small probabilities RR $\approx$ OR but __they are not the same__!
 
 [Wikipedia on Odds Ratio](http://en.wikipedia.org/wiki/Odds_ratio)
-
 
 ---
 
